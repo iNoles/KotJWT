@@ -21,7 +21,7 @@ class JwtTests {
         val payload = JwtPayload(sub = sub, exp = Clock.System.now().plus(3600.toDuration(DurationUnit.SECONDS)).epochSeconds)
 
         // Encode JWT
-        val jwt = encodeJwt(payload, secret, signer = hmacSigner, algorithm = "HS256")
+        val jwt = encodeJwt(payload, secret, signer = hmacSigner)
 
         // Decode JWT and verify payload matches
         val decodedPayload = decodeJwt(jwt, secret, signer = hmacSigner)
@@ -35,7 +35,7 @@ class JwtTests {
 
         // Create an expired payload (expired 1 hour ago)
         val expiredPayload = JwtPayload(sub = sub, exp = Clock.System.now().minus(3600.toDuration(DurationUnit.SECONDS)).epochSeconds)
-        val expiredJwt = encodeJwt(expiredPayload, secret, hmacSigner, algorithm = "HS256")
+        val expiredJwt = encodeJwt(expiredPayload, secret, hmacSigner)
 
         // Ensure decoding the expired JWT throws an exception
         assertFailsWith<IllegalArgumentException>("JWT token has expired") {
@@ -49,7 +49,7 @@ class JwtTests {
 
         // Create and encode a new JWT
         val payload = JwtPayload(sub = sub, exp = Clock.System.now().plus(3600.toDuration(DurationUnit.SECONDS)).epochSeconds)
-        val jwt = encodeJwt(payload, secret, hmacSigner, "HS256")
+        val jwt = encodeJwt(payload, secret, hmacSigner)
 
         // Log the JWT being revoked
         println("Revoking JWT: $jwt")

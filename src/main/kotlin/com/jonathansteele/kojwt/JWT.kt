@@ -80,9 +80,9 @@ fun <T> checkExpiration(payload: T, validateExpiration: Boolean): Boolean {
 }
 
 // Function to encode JWT
-fun encodeJwt(payload: JwtPayload, secret: String, signer: JwtSigner, algorithm: String): String {
+fun encodeJwt(payload: JwtPayload, secret: String, signer: JwtSigner): String {
     // Header and payload in JSON form
-    val headerJson = Json.encodeToString(JwtHeader(alg = algorithm))
+    val headerJson = Json.encodeToString(JwtHeader(alg = signer.alg))
     val payloadJson = Json.encodeToString(payload)
 
     // Base64 URL encoding of both the header and payload

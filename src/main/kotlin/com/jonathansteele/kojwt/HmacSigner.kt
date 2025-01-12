@@ -14,6 +14,8 @@ enum class HmacAlgorithm(val hmacConstructor: HmacConstructor) {
 }
 
 class HmacSigner(private val algorithm: HmacAlgorithm = HmacAlgorithm.HS256) : JwtSigner {
+    override val alg: String = algorithm.name
+
     override fun sign(data: String, secret: String): ByteArray {
         val mac = algorithm.hmacConstructor(secret.toByteArray())
         return mac.doFinal(data.toByteArray())

@@ -19,6 +19,8 @@ class RsaSigner(
     private val publicKey: PublicKey,
     private val rsaAlgorithm: RsaAlgorithm
 ) : JwtSigner {
+    override val alg: String = rsaAlgorithm.name
+
     override fun sign(data: String, secret: String): ByteArray {
         val signature = Signature.getInstance(rsaAlgorithm.alg).apply {
             initSign(privateKey)

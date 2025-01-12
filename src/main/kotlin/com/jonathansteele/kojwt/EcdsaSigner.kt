@@ -19,6 +19,8 @@ class EcdsaSigner(
     private val publicKey: PublicKey,
     private val algorithm: ESAlgorithm
 ): JwtSigner {
+    override val alg: String = algorithm.name
+
     override fun sign(data: String, secret: String): ByteArray {
         val signature = Signature.getInstance(algorithm.alg).apply {
             initSign(privateKey)
