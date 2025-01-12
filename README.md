@@ -15,7 +15,8 @@ KotJWT is a lightweight Kotlin library for encoding and decoding JWT and refresh
 
 ### Encoding a JWT
 
-To encode a JWT, you need to create a ``JwtPayload`` and use the ``encodeJwt`` function:
+To encode a JWT, you need to create a `JwtPayload` and use the `encodeJwt` function:
+
 ```kotlin
 import com.jonathansteele.kojwt.*
 
@@ -31,7 +32,8 @@ println("Encoded JWT: $jwt")
 
 ### Decoding a JWT
 
-To decode a JWT, use the ``decodeJwt`` function:
+To decode a JWT, use the `decodeJwt` function:
+
 ```kotlin
 val decodedPayload = decodeJwt(jwt, secret)
 println("Decoded Payload: $decodedPayload")
@@ -39,7 +41,8 @@ println("Decoded Payload: $decodedPayload")
 
 ### Encoding a Refresh Token
 
-You can encode a refresh token using the ``encodeRefreshToken`` function:
+You can encode a refresh token using the `encodeRefreshToken` function:
+
 ```kotlin
 val refreshTokenPayload = RefreshTokenPayload(
     sub = "user123",
@@ -52,6 +55,7 @@ println("Encoded Refresh Token: $refreshToken")
 ### Decoding a Refresh Token
 
 To decode a refresh token, use the decodeRefreshToken function:
+
 ```kotlin
 val decodedRefreshToken = decodeRefreshToken(refreshToken, secret)
 println("Decoded Refresh Token: $decodedRefreshToken")
