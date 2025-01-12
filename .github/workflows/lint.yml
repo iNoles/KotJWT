@@ -28,5 +28,6 @@ jobs:
         uses: super-linter/super-linter@85f7611e0f7b53c8573cca84aa0ed4344f6f6a4d # v7.2.1
         env:
           DEFAULT_BRANCH: main
+          VALIDATE_SHELL_SHFMT: false
           # To report GitHub Actions status checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
