@@ -6,11 +6,10 @@ import kotlinx.serialization.json.*
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.datetime.Clock
-import org.kotlincrypto.macs.hmac.sha2.HmacSHA256
 
 // JWT Header
 @Serializable
-data class JwtHeader(val alg: String = "HS256", val typ: String = "JWT")
+data class JwtHeader(val alg: String, val typ: String = "JWT")
 
 // JWT Payload
 @Serializable
@@ -42,12 +41,6 @@ object TokenBlacklist {
     fun isRevoked(token: String): Boolean {
         return token in revokedTokens
     }
-}
-
-// Function to sign data with HMACSHA256
-fun signHMACSHA256(data: String, secret: String): ByteArray {
-    val mac = HmacSHA256(secret.toByteArray(Charsets.UTF_8))
-    return mac.doFinal(data.toByteArray(Charsets.UTF_8))
 }
 
 // Base64 URL-safe encoding functions using kotlinx-io
@@ -87,9 +80,9 @@ fun <T> checkExpiration(payload: T, validateExpiration: Boolean): Boolean {
 }
 
 // Function to encode JWT
-fun encodeJwt(payload: JwtPayload, secret: String): String {
+fun encodeJwt(payload: JwtPayload, secret: String, signer: JwtSigner, algorithm: String): String {
     // Header and payload in JSON form
-    val headerJson = Json.encodeToString(JwtHeader())
+    val headerJson = Json.encodeToString(JwtHeader(alg = algorithm))
     val payloadJson = Json.encodeToString(payload)
 
     // Base64 URL encoding of both the header and payload
@@ -100,41 +93,36 @@ fun encodeJwt(payload: JwtPayload, secret: String): String {
     val dataToSign = "$base64Header.$base64Payload"
 
     // Generate signature using HMACSHA256
-    val signature = signHMACSHA256(dataToSign, secret)
+    val signature = signer.sign(dataToSign, secret)
     val base64Signature = base64UrlEncode(signature)
 
     // Return the complete JWT token
     return "$base64Header.$base64Payload.$base64Signature"
 }
 
-// Function to decode and validate JWT
-fun decodeJwt(jwt: String, secret: String, validateExpiration: Boolean = true): JwtPayload {
-    if (TokenBlacklist.isRevoked(jwt)) throw IllegalArgumentException("JWT has been revoked")
+fun decodeJwt(jwt: String, secret: String, signer: JwtSigner, validateExpiration: Boolean = true): JwtPayload {
+    // Check if the JWT is revoked before proceeding
+    if (TokenBlacklist.isRevoked(jwt)) {
+        throw IllegalArgumentException("JWT has been revoked")
+    }
 
     val parts = jwt.split(".")
-    if (parts.size != 3) {
-        throw IllegalArgumentException("Invalid JWT format")
-    }
+    if (parts.size != 3) throw IllegalArgumentException("Invalid JWT format")
 
     val base64Header = parts[0]
     val base64Payload = parts[1]
     val base64Signature = parts[2]
 
-    // Decode the payload
-    val decodedPayload = base64UrlDecode(base64Payload)
-
-    // Validate the signature by recomputing it
     val dataToSign = "$base64Header.$base64Payload"
-    val expectedSignature = signHMACSHA256(dataToSign, secret)
-    val decodedSignature = base64UrlDecodeToBytes(base64Signature)
+    val expectedSignature = base64UrlDecodeToBytes(base64Signature)
 
-    // Compare the generated signature with the one from the token
-    if (!decodedSignature.contentEquals(expectedSignature)) {
+    if (!signer.verify(dataToSign, expectedSignature, secret)) {
         throw IllegalArgumentException("Invalid token signature")
     }
 
-    // Expiration validation
+    val decodedPayload = base64UrlDecode(base64Payload)
     val payload = Json.decodeFromString<JwtPayload>(decodedPayload)
+
     if (!checkExpiration(payload, validateExpiration)) {
         throw IllegalArgumentException("JWT token has expired")
     }
@@ -143,19 +131,19 @@ fun decodeJwt(jwt: String, secret: String, validateExpiration: Boolean = true): 
 }
 
 // Function to encode Refresh Token
-fun encodeRefreshToken(payload: RefreshTokenPayload, secret: String): String {
+fun encodeRefreshToken(payload: RefreshTokenPayload, secret: String, signer: JwtSigner): String {
     val payloadJson = Json.encodeToString(payload)
 
     // Base64 URL encoding and signing
     val base64Payload = base64UrlEncode(payloadJson)
-    val signature = signHMACSHA256(base64Payload, secret)
+    val signature = signer.sign(base64Payload, secret)
     val base64Signature = base64UrlEncode(signature)
 
     return "$base64Payload.$base64Signature"
 }
 
 // Function to decode Refresh Token
-fun decodeRefreshToken(refreshToken: String, secret: String): RefreshTokenPayload {
+fun decodeRefreshToken(refreshToken: String, secret: String, signer: JwtSigner): RefreshTokenPayload {
     if (TokenBlacklist.isRevoked(refreshToken)) throw IllegalArgumentException("Refresh token has been revoked")
 
     val parts = refreshToken.split(".")
@@ -170,10 +158,9 @@ fun decodeRefreshToken(refreshToken: String, secret: String): RefreshTokenPayloa
     val decodedPayload = base64UrlDecode(base64Payload)
 
     // Validate the signature
-    val expectedSignature = signHMACSHA256(base64Payload, secret)
     val decodedSignature = base64UrlDecodeToBytes(base64Signature)
 
-    if (!decodedSignature.contentEquals(expectedSignature)) {
+    if (!signer.verify(base64Payload, decodedSignature, secret)) {
         throw IllegalArgumentException("Invalid refresh token signature")
     }
 
