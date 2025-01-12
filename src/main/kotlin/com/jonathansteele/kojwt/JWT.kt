@@ -1,15 +1,18 @@
 package com.jonathansteele.kojwt
 
+import kotlinx.datetime.Clock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-import kotlinx.datetime.Clock
 
 // JWT Header
 @Serializable
-data class JwtHeader(val alg: String, val typ: String = "JWT")
+data class JwtHeader(
+    val alg: String,
+    val typ: String = "JWT",
+)
 
 // JWT Payload
 @Serializable
@@ -17,7 +20,7 @@ data class JwtPayload(
     val sub: String,
     val exp: Long,
     val iat: Long = Clock.System.now().epochSeconds,
-    val claims: Map<String, String> = emptyMap()
+    val claims: Map<String, String> = emptyMap(),
 )
 
 // Refresh Token Payload
@@ -25,7 +28,7 @@ data class JwtPayload(
 data class RefreshTokenPayload(
     val sub: String,
     val exp: Long,
-    val iat: Long = Clock.System.now().epochSeconds
+    val iat: Long = Clock.System.now().epochSeconds,
 )
 
 // Generalized Token Blacklist for all token types
@@ -38,49 +41,47 @@ object TokenBlacklist {
     }
 
     // Check if a token is revoked
-    fun isRevoked(token: String): Boolean {
-        return token in revokedTokens
-    }
+    fun isRevoked(token: String): Boolean = token in revokedTokens
 }
 
 // Base64 URL-safe encoding functions using kotlinx-io
 @OptIn(ExperimentalEncodingApi::class)
-private fun base64UrlEncode(input: String): String {
-    return Base64.UrlSafe.encode(input.toByteArray(Charsets.UTF_8))
-}
+private fun base64UrlEncode(input: String): String = Base64.UrlSafe.encode(input.toByteArray(Charsets.UTF_8))
 
 @OptIn(ExperimentalEncodingApi::class)
-private fun base64UrlEncode(input: ByteArray): String {
-    return Base64.UrlSafe.encode(input)
-}
+private fun base64UrlEncode(input: ByteArray): String = Base64.UrlSafe.encode(input)
 
 // Base64 URL-safe decoding functions using kotlinx-io
 @OptIn(ExperimentalEncodingApi::class)
-fun base64UrlDecode(input: String): String {
-    return Base64.UrlSafe.decode(input).decodeToString()
-}
+fun base64UrlDecode(input: String): String = Base64.UrlSafe.decode(input).decodeToString()
 
 @OptIn(ExperimentalEncodingApi::class)
-fun base64UrlDecodeToBytes(input: String): ByteArray {
-    return Base64.UrlSafe.decode(input)
-}
+fun base64UrlDecodeToBytes(input: String): ByteArray = Base64.UrlSafe.decode(input)
 
 // Utility to check expiration
-fun <T> checkExpiration(payload: T, validateExpiration: Boolean): Boolean {
+fun <T> checkExpiration(
+    payload: T,
+    validateExpiration: Boolean,
+): Boolean {
     if (!validateExpiration) return true
 
     val currentTime = Clock.System.now().epochSeconds
-    val expirationTime = when (payload) {
-        is JwtPayload -> payload.exp
-        is RefreshTokenPayload -> payload.exp
-        else -> throw IllegalArgumentException("Unsupported token type for expiration check")
-    }
+    val expirationTime =
+        when (payload) {
+            is JwtPayload -> payload.exp
+            is RefreshTokenPayload -> payload.exp
+            else -> throw IllegalArgumentException("Unsupported token type for expiration check")
+        }
 
     return currentTime < expirationTime
 }
 
 // Function to encode JWT
-fun encodeJwt(payload: JwtPayload, secret: String, signer: JwtSigner): String {
+fun encodeJwt(
+    payload: JwtPayload,
+    secret: String,
+    signer: JwtSigner,
+): String {
     // Header and payload in JSON form
     val headerJson = Json.encodeToString(JwtHeader(alg = signer.alg))
     val payloadJson = Json.encodeToString(payload)
@@ -100,7 +101,12 @@ fun encodeJwt(payload: JwtPayload, secret: String, signer: JwtSigner): String {
     return "$base64Header.$base64Payload.$base64Signature"
 }
 
-fun decodeJwt(jwt: String, secret: String, signer: JwtSigner, validateExpiration: Boolean = true): JwtPayload {
+fun decodeJwt(
+    jwt: String,
+    secret: String,
+    signer: JwtSigner,
+    validateExpiration: Boolean = true,
+): JwtPayload {
     // Check if the JWT is revoked before proceeding
     if (TokenBlacklist.isRevoked(jwt)) {
         throw IllegalArgumentException("JWT has been revoked")
@@ -131,7 +137,11 @@ fun decodeJwt(jwt: String, secret: String, signer: JwtSigner, validateExpiration
 }
 
 // Function to encode Refresh Token
-fun encodeRefreshToken(payload: RefreshTokenPayload, secret: String, signer: JwtSigner): String {
+fun encodeRefreshToken(
+    payload: RefreshTokenPayload,
+    secret: String,
+    signer: JwtSigner,
+): String {
     val payloadJson = Json.encodeToString(payload)
 
     // Base64 URL encoding and signing
@@ -143,7 +153,11 @@ fun encodeRefreshToken(payload: RefreshTokenPayload, secret: String, signer: Jwt
 }
 
 // Function to decode Refresh Token
-fun decodeRefreshToken(refreshToken: String, secret: String, signer: JwtSigner): RefreshTokenPayload {
+fun decodeRefreshToken(
+    refreshToken: String,
+    secret: String,
+    signer: JwtSigner,
+): RefreshTokenPayload {
     if (TokenBlacklist.isRevoked(refreshToken)) throw IllegalArgumentException("Refresh token has been revoked")
 
     val parts = refreshToken.split(".")

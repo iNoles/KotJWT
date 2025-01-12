@@ -1,24 +1,31 @@
 package com.jonathansteele.kojwt
 
+import kotlinx.datetime.Clock
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-import kotlinx.datetime.Clock
 
 class JwtTests {
-
     private val secret = "mysecretkey"
     private val sub = "user123"
-    private val refreshTokenExpiration = Clock.System.now().epochSeconds + 86400  // Refresh token expires in 1 day
+    private val refreshTokenExpiration = Clock.System.now().epochSeconds + 86400 // Refresh token expires in 1 day
 
     @Test
     fun `test JWT encoding and decoding with HS256`() {
         val hmacSigner = HmacSigner()
         // Create a sample payload with a 1-hour expiration
-        val payload = JwtPayload(sub = sub, exp = Clock.System.now().plus(3600.toDuration(DurationUnit.SECONDS)).epochSeconds)
+        val payload =
+            JwtPayload(
+                sub = sub,
+                exp =
+                    Clock.System
+                        .now()
+                        .plus(3600.toDuration(DurationUnit.SECONDS))
+                        .epochSeconds,
+            )
 
         // Encode JWT
         val jwt = encodeJwt(payload, secret, signer = hmacSigner)
@@ -30,11 +37,19 @@ class JwtTests {
     }
 
     @Test
-    fun `test JWT expiration with HS256`() {
-        val hmacSigner = HmacSigner()
+    fun `test JWT expiration with HS384`() {
+        val hmacSigner = HmacSigner(HmacAlgorithm.HS384)
 
         // Create an expired payload (expired 1 hour ago)
-        val expiredPayload = JwtPayload(sub = sub, exp = Clock.System.now().minus(3600.toDuration(DurationUnit.SECONDS)).epochSeconds)
+        val expiredPayload =
+            JwtPayload(
+                sub = sub,
+                exp =
+                    Clock.System
+                        .now()
+                        .minus(3600.toDuration(DurationUnit.SECONDS))
+                        .epochSeconds,
+            )
         val expiredJwt = encodeJwt(expiredPayload, secret, hmacSigner)
 
         // Ensure decoding the expired JWT throws an exception
@@ -44,11 +59,19 @@ class JwtTests {
     }
 
     @Test
-    fun `test revocation of JWT with HS256`() {
-        val hmacSigner = HmacSigner()
+    fun `test revocation of JWT with HS512`() {
+        val hmacSigner = HmacSigner(HmacAlgorithm.HS512)
 
         // Create and encode a new JWT
-        val payload = JwtPayload(sub = sub, exp = Clock.System.now().plus(3600.toDuration(DurationUnit.SECONDS)).epochSeconds)
+        val payload =
+            JwtPayload(
+                sub = sub,
+                exp =
+                    Clock.System
+                        .now()
+                        .plus(3600.toDuration(DurationUnit.SECONDS))
+                        .epochSeconds,
+            )
         val jwt = encodeJwt(payload, secret, hmacSigner)
 
         // Log the JWT being revoked
@@ -89,8 +112,8 @@ class JwtTests {
     }
 
     @Test
-    fun `test refresh token revocation with HS256`() {
-        val hmacSigner = HmacSigner()
+    fun `test refresh token revocation with HS384`() {
+        val hmacSigner = HmacSigner(HmacAlgorithm.HS384)
 
         // Create the refresh token payload with a 1-day expiration
         val refreshTokenPayload = RefreshTokenPayload(sub = sub, exp = refreshTokenExpiration)
@@ -108,8 +131,8 @@ class JwtTests {
     }
 
     @Test
-    fun `test refresh token expiration with HS256`() {
-        val hmacSigner = HmacSigner()
+    fun `test refresh token expiration with HS512`() {
+        val hmacSigner = HmacSigner(HmacAlgorithm.HS512)
 
         // Create an expired refresh token payload (expired 10 seconds ago)
         val expiredRefreshTokenPayload = RefreshTokenPayload(sub = sub, exp = Clock.System.now().epochSeconds - 10)
