@@ -1,4 +1,4 @@
-package com.jonathansteele.kojwt
+package com.github.inoles.kojwt
 
 import org.kotlincrypto.core.mac.Mac
 import org.kotlincrypto.macs.hmac.sha2.HmacSHA256

@@ -1,4 +1,4 @@
-package com.jonathansteele.kojwt
+package com.github.inoles.kojwt
 
 interface JwtSigner {
     val alg: String

@@ -1,4 +1,4 @@
-package com.jonathansteele.kojwt
+package com.github.inoles.kojwt
 
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
