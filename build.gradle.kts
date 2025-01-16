@@ -3,7 +3,7 @@ plugins {
     kotlin("plugin.serialization") version "2.1.0"
 }
 
-group = "org.jonathansteele"
+group = "org.github.inoles"
 version = "1.0-SNAPSHOT"
 
 repositories {
