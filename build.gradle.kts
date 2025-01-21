@@ -15,6 +15,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
     implementation("org.kotlincrypto.macs:hmac-sha2:0.6.0")
+    implementation("org.jetbrains.kotlinx:atomicfu:0.27.0")
     testImplementation(kotlin("test"))
 }
 
