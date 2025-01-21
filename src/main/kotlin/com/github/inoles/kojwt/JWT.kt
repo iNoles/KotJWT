@@ -6,6 +6,7 @@ import kotlinx.serialization.json.Json
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlinx.coroutines.runBlocking
 
 // JWT Header
 @Serializable
@@ -81,7 +82,7 @@ fun encodeJwt(
     payload: JwtPayload,
     secret: String,
     signer: JwtSigner,
-): String {
+): String = runBlocking {
     // Header and payload in JSON form
     val headerJson = Json.encodeToString(JwtHeader(alg = signer.alg))
     val payloadJson = Json.encodeToString(payload)
@@ -98,7 +99,7 @@ fun encodeJwt(
     val base64Signature = base64UrlEncode(signature)
 
     // Return the complete JWT token
-    return "$base64Header.$base64Payload.$base64Signature"
+    return@runBlocking "$base64Header.$base64Payload.$base64Signature"
 }
 
 fun decodeJwt(
@@ -106,7 +107,7 @@ fun decodeJwt(
     secret: String,
     signer: JwtSigner,
     validateExpiration: Boolean = true,
-): JwtPayload {
+): JwtPayload = runBlocking {
     // Check if the JWT is revoked before proceeding
     if (TokenBlacklist.isRevoked(jwt)) {
         throw IllegalArgumentException("JWT has been revoked")
@@ -133,7 +134,7 @@ fun decodeJwt(
         throw IllegalArgumentException("JWT token has expired")
     }
 
-    return payload
+    return@runBlocking payload
 }
 
 // Function to encode Refresh Token
@@ -141,7 +142,7 @@ fun encodeRefreshToken(
     payload: RefreshTokenPayload,
     secret: String,
     signer: JwtSigner,
-): String {
+): String = runBlocking {
     val payloadJson = Json.encodeToString(payload)
 
     // Base64 URL encoding and signing
@@ -149,7 +150,7 @@ fun encodeRefreshToken(
     val signature = signer.sign(base64Payload, secret)
     val base64Signature = base64UrlEncode(signature)
 
-    return "$base64Payload.$base64Signature"
+    return@runBlocking "$base64Payload.$base64Signature"
 }
 
 // Function to decode Refresh Token
@@ -157,7 +158,7 @@ fun decodeRefreshToken(
     refreshToken: String,
     secret: String,
     signer: JwtSigner,
-): RefreshTokenPayload {
+): RefreshTokenPayload = runBlocking {
     if (TokenBlacklist.isRevoked(refreshToken)) throw IllegalArgumentException("Refresh token has been revoked")
 
     val parts = refreshToken.split(".")
@@ -184,5 +185,5 @@ fun decodeRefreshToken(
         throw IllegalArgumentException("Refresh token has expired")
     }
 
-    return payload
+    return@runBlocking payload
 }

@@ -14,8 +14,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
-    implementation("org.kotlincrypto.macs:hmac-sha2:0.6.0")
+    implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.4.0")
     testImplementation(kotlin("test"))
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
 }
 
 tasks.test {
