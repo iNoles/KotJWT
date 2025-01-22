@@ -1,6 +1,7 @@
 # KotJWT
 
 KotJWT is a lightweight Kotlin library for encoding and decoding JWT and refresh tokens using HMAC SHA-256, ECDSA, and RSA. It includes features like token signing, signature validation, token expiration checks, and blacklist support. Now fully supporting Kotlin Multiplatform.
+
 ## ✨ Features
 
 - 🔐 **JWT Support** – Encode and decode JWTs with HMAC SHA-256, ECDSA, and RSA signing.
@@ -8,7 +9,7 @@ KotJWT is a lightweight Kotlin library for encoding and decoding JWT and refresh
 - ⏳ **Expiration Handling** – Automatically checks if a token is expired.
 - 🚫 **Token Blacklist** – Prevent the use of revoked tokens.
 - 🏗 **base64 URL-Safe Encoding** – Secure encoding and decoding for JWTs and refresh tokens.
-- 🔑 **Multiple Signing Algorithms
+- 🔑 Multiple Signing Algorithms – Supports HMAC, ECDSA, and RSA for signing JWTs.
 - 🌍 Kotlin Multiplatform Support – Now available for JVM, iOS, macOS, and other platforms.
 
 ## 🚀 Usage
