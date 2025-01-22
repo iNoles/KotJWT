@@ -3,10 +3,11 @@ package com.github.inoles.kojwt
 import kotlinx.datetime.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 import kotlinx.coroutines.runBlocking
+import kotlinx.atomicfu.atomic
+import kotlinx.atomicfu.update
 
 // JWT Header
 @Serializable
@@ -34,15 +35,17 @@ data class RefreshTokenPayload(
 
 // Generalized Token Blacklist for all token types
 object TokenBlacklist {
-    private val revokedTokens = ConcurrentHashMap.newKeySet<String>()
+    private val revokedTokens = atomic(mutableSetOf<String>())
 
     // Add a token to the blacklist
     fun revoke(token: String) {
-        revokedTokens.add(token)
+        revokedTokens.update { currentSet ->
+            currentSet.toMutableSet().apply { add(token) }
+        }
     }
 
     // Check if a token is revoked
-    fun isRevoked(token: String): Boolean = token in revokedTokens
+    fun isRevoked(token: String): Boolean = token in revokedTokens.value
 }
 
 // Base64 URL-safe encoding functions using kotlinx-io
@@ -184,6 +187,5 @@ fun decodeRefreshToken(
     if (!checkExpiration(payload, validateExpiration = true)) {
         throw IllegalArgumentException("Refresh token has expired")
     }
-
     return@runBlocking payload
 }
