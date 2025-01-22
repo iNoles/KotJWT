@@ -1,5 +1,8 @@
 package com.github.inoles.kojwt
 
+import dev.whyoleg.cryptography.CryptographyProvider
+import dev.whyoleg.cryptography.algorithms.RSA
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -93,40 +96,40 @@ class JwtTests {
     }
 
     @Test
-    fun `test encode and decode refresh token with HS256`() {
-        val hmacSigner = HmacSigner()
+    fun `test encode and decode refresh token with EC256`() {
+        val ecSigner = ECSigner(ECAlgorithm.ES256)
 
         // Create the refresh token payload with a 1-day expiration
         val refreshTokenPayload = RefreshTokenPayload(sub = sub, exp = refreshTokenExpiration)
 
         // Encode the refresh token
-        val refreshToken = encodeRefreshToken(refreshTokenPayload, secret, hmacSigner)
+        val refreshToken = encodeRefreshToken(refreshTokenPayload, secret, ecSigner)
 
         // Revoke the refresh token
         TokenBlacklist.revoke(refreshToken)
 
         // Try to decode the revoked refresh token (should throw exception)
         assertFailsWith<IllegalArgumentException>("Refresh token has been revoked") {
-            decodeRefreshToken(refreshToken, secret, hmacSigner)
+            decodeRefreshToken(refreshToken, secret, ecSigner)
         }
     }
 
     @Test
-    fun `test refresh token revocation with HS384`() {
-        val hmacSigner = HmacSigner(HmacAlgorithm.HS384)
+    fun `test refresh token revocation with EC512`() {
+        val ecSigner = ECSigner(ECAlgorithm.ES512)
 
         // Create the refresh token payload with a 1-day expiration
         val refreshTokenPayload = RefreshTokenPayload(sub = sub, exp = refreshTokenExpiration)
 
         // Encode the refresh token
-        val refreshToken = encodeRefreshToken(refreshTokenPayload, secret, hmacSigner)
+        val refreshToken = encodeRefreshToken(refreshTokenPayload, secret, ecSigner)
 
         // Revoke the refresh token
         TokenBlacklist.revoke(refreshToken)
 
         // Try to decode the revoked refresh token (should throw exception)
         assertFailsWith<IllegalArgumentException>("Refresh token has been revoked") {
-            decodeRefreshToken(refreshToken, secret, hmacSigner)
+            decodeRefreshToken(refreshToken, secret, ecSigner)
         }
     }
 
@@ -143,6 +146,89 @@ class JwtTests {
         // Try to decode the expired refresh token (should throw exception)
         assertFailsWith<IllegalArgumentException>("Refresh token has expired") {
             decodeRefreshToken(expiredRefreshToken, secret, hmacSigner)
+        }
+    }
+
+    @Test
+    fun `test JWT encoding and decoding with RSA256`() =
+        runTest {
+            // Generate RSA key pair using the cryptography provider
+            val provider = CryptographyProvider.Default
+            val keyPair = provider.get(RSA.PKCS1).keyPairGenerator().generateKey()
+            val privateKey = keyPair.privateKey
+            val publicKey = keyPair.publicKey
+
+            val rsaSigner = RSASigner(RSAAlgorithm.RS256, privateKey, publicKey)
+
+            // Create a sample payload with a 1-hour expiration
+            val payload =
+                JwtPayload(
+                    sub = sub,
+                    exp =
+                        Clock.System
+                            .now()
+                            .plus(3600.toDuration(DurationUnit.SECONDS))
+                            .epochSeconds,
+                )
+
+            // Encode JWT
+            val jwt = encodeJwt(payload, secret, signer = rsaSigner)
+
+            // Decode JWT and verify payload matches
+            val decodedPayload = decodeJwt(jwt, secret, signer = rsaSigner)
+            assertEquals(payload.sub, decodedPayload.sub, "JWT subject should match")
+            assertEquals(payload.exp, decodedPayload.exp, "JWT expiration should match")
+        }
+
+    @Test
+    fun `test JWT expiration with RS512`() =
+        runTest {
+            // Generate RSA key pair using the cryptography provider
+            val provider = CryptographyProvider.Default
+            val keyPair = provider.get(RSA.PKCS1).keyPairGenerator().generateKey()
+            val privateKey = keyPair.privateKey
+            val publicKey = keyPair.publicKey
+
+            val rsaSigner = RSASigner(RSAAlgorithm.RS512, privateKey, publicKey)
+
+            // Create an expired payload (expired 1 hour ago)
+            val expiredPayload =
+                JwtPayload(
+                    sub = sub,
+                    exp =
+                        Clock.System
+                            .now()
+                            .minus(3600.toDuration(DurationUnit.SECONDS))
+                            .epochSeconds,
+                )
+            val expiredJwt = encodeJwt(expiredPayload, secret, rsaSigner)
+
+            // Ensure decoding the expired JWT throws an exception
+            assertFailsWith<IllegalArgumentException>("JWT token has expired") {
+                decodeJwt(expiredJwt, secret, signer = rsaSigner)
+            }
+        }
+
+    @Test
+    fun `test mismatched algorithm`() {
+        val hmacSignerHS256 = HmacSigner(HmacAlgorithm.HS256)
+        val hmacSignerHS512 = HmacSigner(HmacAlgorithm.HS512)
+
+        // Create and encode a valid JWT with HS256
+        val payload =
+            JwtPayload(
+                sub = sub,
+                exp =
+                    Clock.System
+                        .now()
+                        .plus(3600.toDuration(DurationUnit.SECONDS))
+                        .epochSeconds,
+            )
+        val jwt = encodeJwt(payload, secret, hmacSignerHS256)
+
+        // Attempt to decode the JWT with HS512
+        assertFailsWith<IllegalArgumentException>("JWT algorithm mismatch") {
+            decodeJwt(jwt, secret, hmacSignerHS512)
         }
     }
 }
