@@ -14,12 +14,6 @@ enum class ECAlgorithm(
 ) {
     ES256("SHA256withECDSA", SHA256),
     ES512("SHA512withECDSA", SHA512);
-
-    companion object {
-        fun fromString(alg: String) =
-            entries.find { it.name == alg }
-                ?: throw IllegalArgumentException("Unsupported algorithm: $alg")
-    }
 }
 
 class ECSigner(

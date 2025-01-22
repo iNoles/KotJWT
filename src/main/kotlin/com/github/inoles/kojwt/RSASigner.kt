@@ -13,12 +13,6 @@ enum class RSAAlgorithm(
 ) {
     RS256("SHA256withRSA", SHA256),
     RS512("SHA512withRSA", SHA512);
-
-    companion object {
-        fun fromString(alg: String) =
-            entries.find { it.name == alg }
-                ?: throw IllegalArgumentException("Unsupported algorithm: $alg")
-    }
 }
 
 class RSASigner(
