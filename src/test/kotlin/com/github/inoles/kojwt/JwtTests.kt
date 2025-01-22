@@ -2,6 +2,7 @@ package com.github.inoles.kojwt
 
 import dev.whyoleg.cryptography.CryptographyProvider
 import dev.whyoleg.cryptography.algorithms.RSA
+import kotlinx.coroutines.test.runTest
 import kotlinx.datetime.Clock
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -9,7 +10,6 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
-import kotlinx.coroutines.test.runTest
 
 class JwtTests {
     private val secret = "mysecretkey"
@@ -150,62 +150,64 @@ class JwtTests {
     }
 
     @Test
-    fun `test JWT encoding and decoding with RSA256`() = runTest {
-        // Generate RSA key pair using the cryptography provider
-        val provider = CryptographyProvider.Default
-        val keyPair = provider.get(RSA.PKCS1).keyPairGenerator().generateKey()
-        val privateKey = keyPair.privateKey
-        val publicKey = keyPair.publicKey
+    fun `test JWT encoding and decoding with RSA256`() =
+        runTest {
+            // Generate RSA key pair using the cryptography provider
+            val provider = CryptographyProvider.Default
+            val keyPair = provider.get(RSA.PKCS1).keyPairGenerator().generateKey()
+            val privateKey = keyPair.privateKey
+            val publicKey = keyPair.publicKey
 
-        val rsaSigner = RSASigner(RSAAlgorithm.RS256, privateKey, publicKey)
+            val rsaSigner = RSASigner(RSAAlgorithm.RS256, privateKey, publicKey)
 
-        // Create a sample payload with a 1-hour expiration
-        val payload =
-            JwtPayload(
-                sub = sub,
-                exp =
-                    Clock.System
-                        .now()
-                        .plus(3600.toDuration(DurationUnit.SECONDS))
-                        .epochSeconds,
-            )
+            // Create a sample payload with a 1-hour expiration
+            val payload =
+                JwtPayload(
+                    sub = sub,
+                    exp =
+                        Clock.System
+                            .now()
+                            .plus(3600.toDuration(DurationUnit.SECONDS))
+                            .epochSeconds,
+                )
 
-        // Encode JWT
-        val jwt = encodeJwt(payload, secret, signer = rsaSigner)
+            // Encode JWT
+            val jwt = encodeJwt(payload, secret, signer = rsaSigner)
 
-        // Decode JWT and verify payload matches
-        val decodedPayload = decodeJwt(jwt, secret, signer = rsaSigner)
-        assertEquals(payload.sub, decodedPayload.sub, "JWT subject should match")
-        assertEquals(payload.exp, decodedPayload.exp, "JWT expiration should match")
-    }
+            // Decode JWT and verify payload matches
+            val decodedPayload = decodeJwt(jwt, secret, signer = rsaSigner)
+            assertEquals(payload.sub, decodedPayload.sub, "JWT subject should match")
+            assertEquals(payload.exp, decodedPayload.exp, "JWT expiration should match")
+        }
 
     @Test
-    fun `test JWT expiration with RS512`() = runTest {
-        // Generate RSA key pair using the cryptography provider
-        val provider = CryptographyProvider.Default
-        val keyPair = provider.get(RSA.PKCS1).keyPairGenerator().generateKey()
-        val privateKey = keyPair.privateKey
-        val publicKey = keyPair.publicKey
+    fun `test JWT expiration with RS512`() =
+        runTest {
+            // Generate RSA key pair using the cryptography provider
+            val provider = CryptographyProvider.Default
+            val keyPair = provider.get(RSA.PKCS1).keyPairGenerator().generateKey()
+            val privateKey = keyPair.privateKey
+            val publicKey = keyPair.publicKey
 
-        val rsaSigner = RSASigner(RSAAlgorithm.RS512, privateKey, publicKey)
+            val rsaSigner = RSASigner(RSAAlgorithm.RS512, privateKey, publicKey)
 
-        // Create an expired payload (expired 1 hour ago)
-        val expiredPayload =
-            JwtPayload(
-                sub = sub,
-                exp =
-                    Clock.System
-                        .now()
-                        .minus(3600.toDuration(DurationUnit.SECONDS))
-                        .epochSeconds,
-            )
-        val expiredJwt = encodeJwt(expiredPayload, secret, rsaSigner)
+            // Create an expired payload (expired 1 hour ago)
+            val expiredPayload =
+                JwtPayload(
+                    sub = sub,
+                    exp =
+                        Clock.System
+                            .now()
+                            .minus(3600.toDuration(DurationUnit.SECONDS))
+                            .epochSeconds,
+                )
+            val expiredJwt = encodeJwt(expiredPayload, secret, rsaSigner)
 
-        // Ensure decoding the expired JWT throws an exception
-        assertFailsWith<IllegalArgumentException>("JWT token has expired") {
-            decodeJwt(expiredJwt, secret, signer = rsaSigner)
+            // Ensure decoding the expired JWT throws an exception
+            assertFailsWith<IllegalArgumentException>("JWT token has expired") {
+                decodeJwt(expiredJwt, secret, signer = rsaSigner)
+            }
         }
-    }
 
     @Test
     fun `test mismatched algorithm`() {
@@ -229,5 +231,4 @@ class JwtTests {
             decodeJwt(jwt, secret, hmacSignerHS512)
         }
     }
-
 }
