@@ -1,5 +1,9 @@
 # KotJWT
 
+![Kotlin](https://img.shields.io/badge/Kotlin-Multiplatform-orange?logo=kotlin)
+![License](https://img.shields.io/github/license/iNoles/KotJWT)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+
 KotJWT is a lightweight Kotlin Multiplatform library designed for encoding, decoding, and managing JSON Web Tokens (JWT) and refresh tokens. It supports a variety of cryptographic algorithms, including HMAC SHA-256, ECDSA, and RSA, while providing essential features like token expiration validation, blacklist management, and secure token handling.
 
 ## ✨ Features
