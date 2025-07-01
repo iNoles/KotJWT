@@ -25,7 +25,7 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
             implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.7.0")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
-            implementation("dev.whyoleg.cryptography:cryptography-core:0.4.0")
+            implementation("dev.whyoleg.cryptography:cryptography-core:0.5.0")
             implementation("org.jetbrains.kotlinx:atomicfu:0.28.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
         }
@@ -36,10 +36,10 @@ kotlin {
         }
 
         jvmMain.dependencies {
-            implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.4.0")
+            implementation("dev.whyoleg.cryptography:cryptography-provider-jdk:0.5.0")
         }
         appleMain.dependencies {
-            implementation("dev.whyoleg.cryptography:cryptography-provider-apple:0.4.0")
+            implementation("dev.whyoleg.cryptography:cryptography-provider-apple:0.5.0")
             // or openssl3 provider with better algorithms coverage and other native targets support
             // implementation("dev.whyoleg.cryptography:cryptography-provider-openssl3-prebuilt:0.4.0")
         }
