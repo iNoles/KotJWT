@@ -1,6 +1,6 @@
 plugins {
     kotlin("multiplatform") version "2.3.20"
-    kotlin("plugin.serialization") version "2.3.20"
+    kotlin("plugin.serialization") version "2.3.21"
 }
 
 group = "org.github.inoles"
