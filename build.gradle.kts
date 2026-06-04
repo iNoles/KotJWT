@@ -26,7 +26,7 @@ kotlin {
             implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.0")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
             implementation("dev.whyoleg.cryptography:cryptography-core:0.6.0")
-            implementation("org.jetbrains.kotlinx:atomicfu:0.32.1")
+            implementation("org.jetbrains.kotlinx:atomicfu:0.33.0")
             implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
         }
 
