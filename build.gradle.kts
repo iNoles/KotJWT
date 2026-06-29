@@ -23,7 +23,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.0")
+            implementation("org.jetbrains.kotlinx:kotlinx-io-core:0.9.1")
             implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0")
             implementation("dev.whyoleg.cryptography:cryptography-core:0.6.0")
             implementation("org.jetbrains.kotlinx:atomicfu:0.33.0")
